@@ -1,8 +1,8 @@
-# TODO SINGLE RESPONSIBILITY
+from abc import ABC, abstractmethod
+# TODO OPEN/CLOSE Principle
 """
-SINGLE RESPONSIBILITY means that all class and method should be responsible only for one thing
+OPEN/CLOSE Principle - open for extension close for modification
 """
-
 
 # class Order:
 #
@@ -23,18 +23,27 @@ SINGLE RESPONSIBILITY means that all class and method should be responsible only
 #             total += self.quantities[i] * self.prices[i]
 #         return total
 #
-#     def pay(self, payment_type, security_code):
-#         if payment_type == "debit":
-#             print("Processing debit payment type")
-#             print(f"Verifying security code: {security_code}")
-#             self.status = "paid"
-#         elif payment_type == "credit":
-#             print("Processing credit payment type")
-#             print(f"Verifying security code: {security_code}")
-#             self.status = "paid"
-#         else:
-#             raise Exception(f"Unknown payment type: {payment_type}")
-
+#
+# class PaymentProcessor:
+#     def pay_debit(self, order, security_code):
+#         print("Processing debit payment type")
+#         print(f"Verifying security code: {security_code}")
+#         order.status = "paid"
+#
+#     def pay_credit(self, order, security_code):
+#         print("Processing credit payment type")
+#         print(f"Verifying security code: {security_code}")
+#         order.status = "paid"
+#
+#
+# order = Order()
+# order.add_item("Keyboard", 1, 50)
+# order.add_item("SSD", 1, 150)
+# order.add_item("USB cable", 2, 5)
+#
+# print(order.total_price())
+# processor = PaymentProcessor()
+# processor.pay_debit(order, "0372846")
 
 class Order:
 
@@ -42,7 +51,7 @@ class Order:
         self.items = []
         self.quantities = []
         self.prices = []
-        self.order = 'open'
+        self.status = "open"
 
     def add_item(self, name, quantity, price):
         self.items.append(name)
@@ -56,16 +65,24 @@ class Order:
         return total
 
 
-class Payment:
+class PaymentBase(ABC):
 
-    @staticmethod
-    def debit(order: Order, security_code):
+    @abstractmethod
+    def pay(self, order, security_code):
+        pass
+
+
+class DebitPeyment(PaymentBase):
+
+    def pay(self, order, security_code):
         print("Processing debit payment type")
         print(f"Verifying security code: {security_code}")
         order.status = "paid"
 
-    @staticmethod
-    def credit(order: Order, security_code):
+
+class CreditPeyment(PaymentBase):
+
+    def pay(self, order, security_code):
         print("Processing credit payment type")
         print(f"Verifying security code: {security_code}")
         order.status = "paid"
@@ -75,6 +92,7 @@ order = Order()
 order.add_item("Keyboard", 1, 50)
 order.add_item("SSD", 1, 150)
 order.add_item("USB cable", 2, 5)
-pay = Payment()
+
 print(order.total_price())
-pay.debit(order, "0372846")
+processor = DebitPeyment()
+processor.pay(order, "0372846")
