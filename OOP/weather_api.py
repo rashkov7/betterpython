@@ -1,23 +1,11 @@
+import os
 from dataclasses import dataclass
-from requests.exceptions import ConnectionError
+from requests.exceptions import ConnectionError, ReadTimeout, HTTPError
 import requests
 
 
 API_KEY = os.getenv("API_KEY")
 
-
-@dataclass
-class Weather:
-    city: str
-    temperature: int
-    humidity: int
-    wind_speed: int
-
-    def __str__(self):
-        return (f"📍 City: {self.city}\n"
-                f"🌡 Temperature: {self.temperature}°C\n"
-                f"💧 Humidity: {self.humidity}%\n"
-                f"💨 Wind Speed: {self.wind_speed} m/s")
 
 class WeatherAPI:
     API_URL = f"https://api.openweathermap.org/data/2.5/weather"
@@ -32,9 +20,14 @@ class WeatherAPI:
             "units": "metric"
         }
         try:
-            response = requests.get(self.API_URL,params=params)
+            response = requests.get(self.API_URL,params=params, timeout=1)
+            response.raise_for_status()
         except ConnectionError:
             return 'Connection is not established.'
+        except ReadTimeout:
+            return 'Timeout for this request.'
+        except HTTPError:
+            return '404 Client Error: Not Found for url'
         else:
             if response.status_code == 200:
                 data = response.json()
@@ -47,6 +40,18 @@ class WeatherAPI:
                 return result
             return response.status_code
 
+@dataclass
+class Weather:
+    city: str
+    temperature: int
+    humidity: int
+    wind_speed: int
+
+    def __str__(self):
+        return (f"📍 City: {self.city}\n"
+                f"🌡 Temperature: {self.temperature}°C\n"
+                f"💧 Humidity: {self.humidity}%\n"
+                f"💨 Wind Speed: {self.wind_speed} m/s")
 
 api = WeatherAPI(API_KEY)
 print(api.get_weather('London'))
